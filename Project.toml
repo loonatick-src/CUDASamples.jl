@@ -3,6 +3,10 @@ uuid = "a97fd94c-ac3c-4a15-81a2-eb2ff1d82098"
 authors = ["Chaitanya Kumar <chaitanyak28771@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+
 [compat]
 julia = "1"
 

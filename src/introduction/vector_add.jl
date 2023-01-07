@@ -1,27 +1,20 @@
+using CUDASamples
 using CUDA
 
+export vector_add!
+
 function vector_add!(z, x, y)
+  N = length(x)
   tidx = threadIdx().x
   bidx = blockIdx().x
   bdim = blockDim().x
-  n = min(length.(z, x, y))
-  i = bdim * bidx + tidx
-  if (i < n)
-    z[i] = x[i] + y[i]
+  idx = bdim * (bidx-1) + tidx
+  # grid-strided loop
+  stride = gridDim().x * bdim
+  for i in idx:stride:N
+    if i <= N
+      z[i] = x[i] + y[i]
+    end
   end
   nothing
 end
-
-
-
-@testset "`vector_add` correctness" begin
-  const N = 2^20
-  xs = CUDA.fill(1.0f0, N)
-  ys = CUDA.fill(2.0f0, N)
-  zs = CuArray{eltype(xs)}(undef, N)
-  CUDA.@sync begin
-    @cuda threads=256 vector_add!(zs, xs, ys)
-  end
-  @test
-end
-

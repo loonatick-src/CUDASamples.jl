@@ -30,3 +30,28 @@ function reduce0(g_idata, g_odata)
   end
   nothing
 end
+
+function reduce1(g_idata, g_odata)
+  n = length(g_idata)
+  sdata = CuDynamicSharedArray(eltype(g_idata), blockDim().x)
+  tid = threadIdx().x
+
+  i = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+
+  sdata[tid] = (i <= n) ? g_idata[i] : 0;
+
+  sync_threads()
+  s = 1
+  while s < blockDim().x
+    index = 2s * tid
+    if index < blockDim().x
+      sdata[index] += sdata[index + s]
+    end
+    sync_threads()
+    s *= 2
+  end
+  if tid == 1
+    g_odata[blockIdx().x] = sdata[1]
+  end
+  nothing
+end

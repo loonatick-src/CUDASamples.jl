@@ -49,6 +49,15 @@ using Random: shuffle
       end
       out = Array(out_d)
       @test sum(out) == sum(xs)
+      CUDA.reclaim()
+      xs_d = CuArray(xs)
+      out_d = similar(xs_d, nblocks)
+      reduce1 = CUDASamples.ConceptsAndTechniques.reduce1
+      CUDA.@sync begin
+        @cuda threads=threads_per_block blocks=nblocks shmem = threads_per_block*sizeof(eltype(xs)) reduce1(xs_d, out_d)
+      end
+      out = Array(out_d)
+      @test sum(out) == sum(xs)
     end
   end
 

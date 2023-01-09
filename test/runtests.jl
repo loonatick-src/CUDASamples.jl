@@ -1,10 +1,12 @@
 using CUDASamples
 using CUDA
 using Test
+# TODO: use proper RNG instead of relying on default one
+using Random: shuffle
 
 @testset "CUDASamples.jl" begin
   # Write your tests here.
-  device_attributes, _ = query_device(CUDA.device())
+  device_attributes, _ = CUDASamples.Utilities.device_query(CUDA.device())
   # 1024 on my machine
   threads_per_block = device_attributes[CUDA.CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK]
   # 16
@@ -32,6 +34,23 @@ using Test
     for (x, y, z) in zip(xs, ys, zs)
       @test z == x + y
     end
-end
+  end
+
+  @testset "Concepts and Techniques" begin
+    @testset "Reduction" begin
+      threads_per_block = 32
+      nblocks = 3  # magic number
+      N = nblocks * threads_per_block - 5
+      xs = 1.0f0:N |> collect |> shuffle
+      xs_d = CuArray(xs)
+      out_d = similar(xs_d, nblocks)
+      reduce0 = CUDASamples.ConceptsAndTechniques.reduce0
+      CUDA.@sync begin
+        @cuda threads=threads_per_block blocks=nblocks shmem=threads_per_block*sizeof(eltype(xs)) reduce0(xs_d, out_d)
+      end
+      out = Array(out_d)
+      @test sum(out) == sum(xs)
+    end
+  end
 
 end

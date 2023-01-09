@@ -38,7 +38,6 @@ using Random: shuffle
 
   @testset "Concepts and Techniques" begin
     @testset "Reduction" begin
-      threads_per_block = 32
       nblocks = 3  # magic number
       N = nblocks * threads_per_block - 5
       xs = 1.0f0:N |> collect |> shuffle
